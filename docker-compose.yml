@@ -1,0 +1,350 @@
+version: '3.8'
+
+services:
+  # --- INFRASTRUCTURE LAYER ---
+  zookeeper:
+    image: zookeeper:3.9
+    container_name: zookeeper
+    restart: unless-stopped
+    networks:
+      - trading-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTERNAL://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - trading-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    networks:
+      - trading-net
+
+  # Optional: Local container DB (unused in Institutional mode)
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: trading_db
+      POSTGRES_USER: trading
+      POSTGRES_PASSWORD: trading
+    volumes:
+      - ./infra/postgres/data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - trading-net
+
+  # --- CORE INTELLIGENCE SERVICES (FastAPI) ---
+  model-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/model-service
+    container_name: model-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7003:7003"
+    depends_on:
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  signal-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/signal-service
+    container_name: signal-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7004:7004"
+    depends_on:
+      - kafka
+      - model-service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/ai-service
+    container_name: ai-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7011:7011"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  # --- HIGH-PERFORMANCE DATA PIPELINE (Scripts) ---
+  ingestor:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: scripts/ingestion
+    container_name: ingestor
+    env_file:
+      - .env
+      - .env.docker
+    command: ["python3", "angel_one_ws.py"]
+    depends_on:
+      - kafka
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  compute-1s:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: scripts/compute
+    container_name: compute-1s
+    env_file:
+      - .env
+      - .env.docker
+    command: ["python3", "bar_builder_1s.py"]
+    depends_on:
+      - kafka
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  compute-1m:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: scripts/compute
+    container_name: compute-1m
+    env_file:
+      - .env
+      - .env.docker
+    command: ["python3", "bar_aggregator_1m.py"]
+    depends_on:
+      - kafka
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  # --- SUPPLEMENTARY INTELLIGENCE SERVICES ---
+  news-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/news-service
+    container_name: news-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7007:7007"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  fundamental-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/fundamental-service
+    container_name: fundamental-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7008:7008"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  institutional-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/institutional-service
+    container_name: institutional-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7009:7009"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  sentiment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/sentiment-service
+    container_name: sentiment-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7010:7010"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  paper-trading-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/paper-trading-service
+    container_name: paper-trading-service
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "7012:7012"
+    depends_on:
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  # --- GATEWAY & OBSERVABILITY ---
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: gateway
+    container_name: api-gateway
+    env_file:
+      - .env
+      - .env.docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      - signal-service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["python3", "main.py"]
+    volumes:
+      - ./frontend/dist:/app/frontend/dist
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  signal-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_DIR: services/signal-service
+    container_name: signal-consumer
+    env_file:
+      - .env
+      - .env.docker
+    command: ["python3", "-m", "app.services.bar_consumer"]
+    depends_on:
+      - kafka
+      - signal-service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - trading-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - trading-net
+
+networks:
+  trading-net:
+    driver: bridge

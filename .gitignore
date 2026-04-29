@@ -1,0 +1,47 @@
+# Virtual Environment
+trading-system/
+venv/
+.venv/
+env/
+
+# Data and Logs
+data/
+logs/
+scratch/
+catboost_info/
+*.log
+*.pid
+
+# Environment Variables
+.env
+.env.docker
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Rust
+target/
+

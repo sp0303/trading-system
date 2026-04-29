@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'nifty_elite_services'
+    static_configs:
+      - targets: ['host.docker.internal:8111']
+        labels:
+          service: 'ingestion_angel'
+      - targets: ['host.docker.internal:8112']
+        labels:
+          service: 'compute_1s_builder'
+      - targets: ['host.docker.internal:8113']
+        labels:
+          service: 'compute_1m_aggregator'
+      - targets: ['host.docker.internal:8116']
+        labels:
+          service: 'risk_manager'
+      - targets: ['host.docker.internal:7004']
+        labels:
+          service: 'signal_service'
+      - targets: ['host.docker.internal:7003']
+        labels:
+          service: 'ai_service'

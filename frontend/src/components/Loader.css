@@ -1,0 +1,123 @@
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.loader-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  animation: rotate 2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.loader-ring:nth-child(1) {
+  border-top-color: var(--accent-color);
+  animation-delay: -0.45s;
+}
+
+.loader-ring:nth-child(2) {
+  border-top-color: var(--success-color);
+  animation-delay: -0.3s;
+}
+
+.loader-ring:nth-child(3) {
+  border-top-color: var(--accent-light);
+  animation-delay: -0.15s;
+}
+
+.loader-core {
+  width: 40px;
+  height: 40px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px var(--accent-color);
+  z-index: 10;
+}
+
+.loader-pulse {
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  border-radius: inherit;
+  animation: pulse 1.5s ease-out infinite;
+}
+
+.loader-text-container {
+  position: relative;
+  text-align: center;
+}
+
+.loader-text {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin: 0;
+  animation: textFade 2s ease-in-out infinite;
+}
+
+.loader-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes textFade {
+  0%, 100% { opacity: 0.6; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}

@@ -1,0 +1,11 @@
+tunnel: 056ca2a0-28ea-4dd1-9ddb-a60c9d877a0c
+credentials-file: /home/sumanth/.cloudflared/056ca2a0-28ea-4dd1-9ddb-a60c9d877a0c.json
+
+ingress:
+  - hostname: trading-system.sharatpatnayakuni.site
+    service: http://localhost:8000
+  - hostname: monitor-trading-system.sharatpatnayakuni.site
+    service: http://localhost:3000
+  - hostname: kafka-trading-system.sharatpatnayakuni.site
+    service: http://localhost:8085
+  - service: http_status:404

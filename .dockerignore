@@ -1,0 +1,48 @@
+# Institutional Data Isolation (The "Vault" Policy)
+# Prevent 90GB of data from dumping into Docker images.
+
+# 1. Heavy Data (The Bulk)
+data/
+logs/
+*.parquet
+*.csv
+*.h5
+*.log
+*.sqlite
+*.db
+
+# 2. Virtual Environments & Junk
+venv/
+.venv/
+env/
+.env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 3. Node/Frontend Junk
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.next/
+out/
+
+# 4. OS/IDE Junk
+.DS_Store
+.idea/
+.vscode/
+.swp
+*~
+
+# 5. Build/Docker Junk
+.git
+.gitignore
+.dockerignore
+Dockerfile*
+docker-compose*
+infra/**/data/
+infra/**/init/

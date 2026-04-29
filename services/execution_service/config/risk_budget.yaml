@@ -1,0 +1,32 @@
+# Nifty Elite Risk Budget Configuration
+# Motto: "Intelligence-Driven, Infrastructure-Hardened Execution."
+
+# Risk Per Trade (as % of total equity)
+risk_per_trade_pct:
+  LOW: 0.1     # 0.1% risk for Low conviction
+  MED: 0.25    # 0.25% risk for Medium conviction
+  HIGH: 0.5    # 0.5% risk for High conviction (Institutional)
+  DEFAULT: 0.1
+
+# Split of total tradable capital across buckets
+buckets:
+  LOW: 
+    split: 0.2
+  MED: 
+    split: 0.3
+  HIGH: 
+    split: 0.5
+
+# Monetary caps per strategy (Max INR value per trade before leverage)
+monetary_caps:
+  ORB: 50000
+  MOMENTUM: 75000
+  MEAN_REVERSION: 50000
+  TREND_FOLLOWING: 100000
+  DEFAULT: 25000
+
+# Safety Guardrails
+per_symbol_max_qty: 5000
+tick_size: 0.05
+total_cash_inr: 1000000  # Initial simulation cash
+holdback_fraction: 0.1   # Keep 10% cash as buffer

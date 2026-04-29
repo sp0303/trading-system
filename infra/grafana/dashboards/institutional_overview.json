@@ -1,0 +1,79 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "Institutional Pipeline Health",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+    {
+      "title": "Tick Velocity (Angel One)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "targets": [
+        { "expr": "sum(rate(angel_ticks_received_total[1m])) by (symbol)", "legendFormat": "{{symbol}}" }
+      ]
+    },
+    {
+      "title": "Bar-1s Ingestion Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "targets": [
+        { "expr": "rate(bars_1s_written_total[1m])", "legendFormat": "1s-Bars" }
+      ]
+    },
+    {
+      "title": "Risk & Capital Management",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "collapsed": false
+    },
+    {
+      "title": "Tradable Equity (INR)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
+      "targets": [
+        { "expr": "risk_manager_tradable_equity_inr" }
+      ],
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
+    },
+    {
+      "title": "Order Decisions (Approval vs Rejection)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 10 },
+      "targets": [
+        { "expr": "rate(risk_orders_approved_total[1m])", "legendFormat": "APPROVED" },
+        { "expr": "rate(risk_orders_rejected_total[1m])", "legendFormat": "REJECTED" }
+      ]
+    }
+  ],
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["institutional", "nifty-elite"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Nifty Elite: Institutional Overview",
+  "uid": "nifty_elite_institutional",
+  "version": 1,
+  "weekStart": ""
+}
